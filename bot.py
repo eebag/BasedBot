@@ -1,5 +1,5 @@
 import json
-
+from datetime import date
 import discord
 from discord.ext import commands
 import csv
@@ -30,12 +30,14 @@ minSC = None
 SCFile = None
 settingsFile = None
 maxChange = None
+lastDate = None
 
 ###########################################################
 #Important/setup functions
 def assignServerSettings(filename):
+    global serverSettings
     with open(filename) as settings:
-        __serverSettings__ = json.load(settings)
+        serverSettings = json.load(settings)
         pass
 
 async def setup(ctx):
@@ -51,6 +53,7 @@ async def setup(ctx):
     assignServerSettings(settingsfile)
 
     filename = guild.id + "-scores.csv"
+    global SCFile
     SCFile = filename
     #TODO: make sure file exists
     loadSocialCredit(filename)
@@ -78,7 +81,7 @@ def loadSocialCredit(filename):
     return
 
 #Save social credit to given file
-def saveSC(filename):
+def saveSC():
     fields = ['UserID','Credit']
     with open(SCFile, 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fields)
@@ -96,6 +99,12 @@ def saveSC(filename):
     return
 
 
+#TODO: reset all change values in current dict
+def resetChange():
+
+    saveSC()
+    print("rest complete")
+    pass
 
 ###########################################################
 #Helper/Misc Functions
@@ -242,6 +251,9 @@ def setSocailCredit(user, amount):
 async def SocialCredit(ctx, *args):
     #author = ctx.message.author
     #await ctx.send("You called a social credit command:");
+
+    if()
+
     if len(args) == 0:
         await ctx.send("Social Credit commands: \n"
                        "add [user] [amount] -> adds [amount] social credit to [user]'s account\n"
