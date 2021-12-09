@@ -396,14 +396,26 @@ async def consolePrint(ctx, args):
 
 
 @bot.command()
-async def printRoles(ctx, args):
+async def printRoles(ctx, *args):
     await ctx.send("printing roles in muhfuckin console")
 
-    if len(args != 1):
+    if len(args) > 1:
+        for arg in args:
+            print(arg)
+
         await badCommand(ctx)
         return
 
-    user, _ = findUser(args[0], ctx)
+    if len(args) == 0:
+        user = ctx.message.author
+        for role in user.roles:
+            print(role);
+
+        return
+
+    #print(args[0])
+
+    user, _ = await findUser(args[0], ctx)
 
     if not _ :
         ctx.send("user dont exist dingus")
@@ -417,8 +429,8 @@ async def printRoles(ctx, args):
 # Run the bot
 @bot.event
 async def on_ready():
-    print("Loading Social Credit csv")
-    loadSocialCredit(SCFile)
+    #print("Loading Social Credit csv")
+    #loadSocialCredit(SCFile)
     print("Ready!")
 
 
