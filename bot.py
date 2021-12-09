@@ -1,13 +1,19 @@
+#libraries that do kind things for me like make me not have to do code
 import json
 from datetime import date
 import discord
 from discord.ext import commands
 import csv
+import os
+
 
 # constants for discord bot stuff
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix=';', intents=intents)
+
+#current directory
+CWD = os.getcwd()
 
 # Get the token for the server
 token = None
@@ -40,7 +46,8 @@ async def setup(ctx):
 
     # Load/make settings .json for server
     settingsfile = id + "-settings.json"  # guildid-settings.json
-    # TODO: make sure file exists
+
+
     print("Opening settings from file: " + settingsfile + "\n for server " + guild.name)
     assignServerSettings(settingsfile)
 
@@ -53,8 +60,8 @@ async def setup(ctx):
 
 
 # Load saved SC to dict, {name -> (current SC, gained today )}
-def loadSocialCredit(filename):
-    with open(filename, 'r') as data:
+def loadSocialCredit():
+    with open(SCFile, 'r') as data:
         for line in csv.DictReader(data):
             # print(type(line))
             userid = line['UserID']
@@ -95,8 +102,12 @@ def saveSC():
 
 # TODO: reset all change values in current dict
 def resetChange():
-    saveSC()
-    print("rest complete")
+    global socialCredit
+
+    #loop thru dict
+    #for each player -> replace credit with (credit, 0)
+
+    print("reset complete")
     pass
 
 
@@ -382,6 +393,25 @@ async def SocialCredit(ctx, *args):
 async def consolePrint(ctx, args):
     await ctx.send("Printing args in console")
     print(args)
+
+
+@bot.command()
+async def printRoles(ctx, args):
+    await ctx.send("printing roles in muhfuckin console")
+
+    if len(args != 1):
+        await badCommand(ctx)
+        return
+
+    user, _ = findUser(args[0], ctx)
+
+    if not _ :
+        ctx.send("user dont exist dingus")
+        return
+
+    else:
+        for role in user.roles:
+            print(role);
 
 
 # Run the bot
