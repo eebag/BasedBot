@@ -42,6 +42,18 @@ async def removeSocialCredit(ctx, *args)
 async def checkSocialCredit(ctx, *args)
     pass
 
+#Setup/initialization commands
+
+#init: use when setting up bot for server.  Also usable as reset.
+@bot.command
+async def init(ctx, *args)
+    pass
+
+#setup: use after bot restart
+@bot.command
+async def setup(ctx, *args)
+    pass
+
 # Run the bot
 @bot.event
 async def on_ready():
