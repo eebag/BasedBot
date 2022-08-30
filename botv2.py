@@ -9,6 +9,10 @@ from discord.ext import commands
 import csv
 import os
 
+# important stuff unrleated to discord api
+GUILD = None # constant for holding the guild
+STARTED = False
+
 # constants for discord bot stuff
 intents = discord.Intents.default()
 intents.members = True
@@ -46,6 +50,9 @@ async def findUser(target, ctx):
 # Admin help command
 @bot.command()
 async def commands(ctx, *args):
+    if not STARTED:
+        return
+
     if len(args) == 0:
         await ctx.send("Social Credit commands: \n"
                        "add [user] [amount] -> adds [amount] social credit to [user]'s account\n"
@@ -56,6 +63,9 @@ async def commands(ctx, *args):
 
 @bot.command(name="add")
 async def add_social_credit(ctx, amount, user: discord.user = None):
+    if not STARTED:
+        return
+
     if not user:
         await ctx.send("Invalid user or self mention")
     else:
@@ -65,6 +75,8 @@ async def add_social_credit(ctx, amount, user: discord.user = None):
 @bot.command()
 @has_permissions(administrator = True)
 async def giverole(ctx, user : discord.Member, *, role : discord.role = None):
+    if not STARTED:
+        return
 
     if role in user.roles:
         await ctx.send(f"{user.mention} already has the role {role}!")
@@ -75,6 +87,9 @@ async def giverole(ctx, user : discord.Member, *, role : discord.role = None):
 
 @giverole.error
 async def role_error(self, ctx, error):
+    if not STARTED:
+        return
+
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("Nice try, pal")
 
@@ -82,19 +97,29 @@ async def role_error(self, ctx, error):
 @bot.command(name="setmaxrole")
 @has_permissions(administrator = True)
 async def set_max_role(ctx, *, role : discord.role):
+    if not STARTED:
+        return
+
     await ctx.send(f"{role} now set as max role")
 
 
 @bot.command(name="addrole")
 @has_permissions(administrator = True)
-async def add_role(ctx, *, role : discord.role):
-    await ctx.send(f"{role} now added")
+async def add_role(ctx, name:str):
+    if not STARTED:
+        return
 
+    role = get(GUILD.roles, name=name)
+    if role is None:
+        await ctx.send("role does not exist")
+    else:
+        await ctx.send(f"{role} added")
 
 # non-admin commands
 @bot.command(name="check")
 async def check_social_credit(ctx, *args):
-    pass
+    if not STARTED:
+        return
 
 
 # Setup/initialization commands
@@ -102,13 +127,15 @@ async def check_social_credit(ctx, *args):
 # init: use when setting up bot for server.  Also usable as reset.
 @bot.command()
 async def init(ctx, *args):
-    pass
+    if not STARTED:
+        return
 
 
 # setup: use after bot restart
 @bot.command()
-async def setup(ctx, *args):
-    pass
+async def start(ctx, *args):
+    GUILD = ctx.guild
+    STARTED = True
 
 
 # Run the bot
