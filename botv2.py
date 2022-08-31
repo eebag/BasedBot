@@ -227,6 +227,22 @@ async def set_max_role(ctx, name : str, amount : int = 1):
         topmembers = amount
         await ctx.send(f"{role} now set as max role, with {amount} people allowed to hold it")
 
+@bot.command(name ="setdefaultrole")
+@has_permissions(administrator=True)
+async def set_neutral_role(ctx, name: str):
+    if not STARTED:
+        return
+
+    global roles
+
+    rolename = name.replace("_", " ")
+    role = get(GUILD.roles, name=rolename)
+    if role is None:
+        print("NO ROLE")
+        await ctx.send("role does not exist")
+    else:
+        roles[0] = role
+        await ctx.send(f"{role} now set 0 point role")
 
 @bot.command(name="addrole")
 @has_permissions(administrator = True)
