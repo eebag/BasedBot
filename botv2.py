@@ -6,6 +6,7 @@ from discord import Member
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 from discord.utils import get
+import math
 import csv
 import os
 
@@ -34,6 +35,8 @@ roles = {}
 #top role and number of people who can attain it
 toprole = None
 topmembers = 0
+toprequirement = 0
+
 roleholders = []
 ###########################################################
 # Helper/Misc Functions
@@ -63,38 +66,56 @@ def check_for_data(user):
         memberPoints[userid] = 0
         return False
 
-async def update_top_members(ctx):
-    global toprole, topmembers, roleholders
-    sorted_members = sorted(memberPoints.items(), key=lambda x: x[1], reverse=True)
-    if topmembers > len(sorted_members):
-        ctx.send("Error in updating top rank: More members allocated than have points")
-    else:
-        #TODO: assign role based on role dict, remove top role
-        for user in roleholders:
-            user.remove_roles(toprole)
-
-        for i in range(0, topmembers - 1):
-            userid = sorted_members[i][0]
-            user = bot.fetch_user(int(userid))
-            user.add_roles(toprole)
-
+#updates roles and top members
 async def update_roles(ctx, user: discord.member):
-    global roles, memberPoints
+    global roles, memberPoints, toprole, topmembers, toprequirement, roleholders
 
     member = await discord.ext.commands.converter.MemberConverter().convert(ctx, str(user.id))
 
     userroles = member.roles
     userpoints = memberPoints[user.id]
 
+    # check for normal roles
+    roleamt = -math.inf
+    newrole = None
+
     for amount in roles.keys():
         role = roles[amount]
 
-        if userpoints >= amount:
-            if not role in member.roles:
-                await member.add_roles(role)
+        # make sure only top role is added
+        if (userpoints >= amount) and (amount > roleamt):
+            newrole = role
+            roleamt = amount
         else:
             if role in member.roles:
                 await member.remove_roles(role)
+
+    # assign newrole
+    if (not newrole in member.roles) and (newrole != None):
+        print(f"adding {newrole} to {user.name}")
+        await member.add_roles(newrole)
+
+    # remove all the roles that aren't newrole
+    for r in roles.values():
+        if r != newrole:
+            await member.remove_roles(r)
+
+    # check for top role
+    # if toprequirement > 0 and userpoints > toprequirement:
+    #
+    #     # sort all members by points
+    #     sorted_members = sorted(memberPoints.items(), key=lambda x: x[1], reverse=True)
+    #
+    #     if topmembers > len(sorted_members):
+    #         ctx.send("Error in updating top rank: More members allocated than have points")
+    #     else:
+    #         for user in roleholders:
+    #             user.remove_roles(toprole)
+    #
+    #         for i in range(0, topmembers - 1):
+    #             userid = sorted_members[i][0]
+    #             user = bot.fetch_user(int(userid))
+    #             user.add_roles(toprole)
 
     if userroles != member.roles:
         await ctx.send(f"{user.mention} has had their roles updated")
