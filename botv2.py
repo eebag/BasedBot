@@ -3,9 +3,9 @@ import json
 from datetime import date
 import discord
 from discord import Member
+from discord.ext import commands
 from discord.ext.commands import has_permissions
 from discord.utils import get
-from discord.ext import commands
 import csv
 import os
 
@@ -27,7 +27,7 @@ tokenfile = "token.txt"
 with open(tokenfile) as t:
     token = t.readline()
 
-# Social credit dict {userid -> social credit}
+# points credit dict {userid -> points}
 memberPoints = {}
 # roles dict {points -> role}
 roles = {}
@@ -78,8 +78,26 @@ async def update_top_members(ctx):
             user = bot.fetch_user(int(userid))
             user.add_roles(toprole)
 
-async def update_role(ctx, user):
-    await ctx.send(user.mention , " updated")
+async def update_roles(ctx, user: discord.member):
+    global roles, memberPoints
+
+    member = await discord.ext.commands.converter.MemberConverter().convert(ctx, str(user.id))
+
+    userroles = member.roles
+    userpoints = memberPoints[user.id]
+
+    for amount in roles.keys():
+        role = roles[amount]
+
+        if userpoints >= amount:
+            if not role in member.roles:
+                await member.add_roles(role)
+        else:
+            if role in member.roles:
+                await member.remove_roles(role)
+
+    if userroles != member.roles:
+        await ctx.send(f"{user.mention} has had their roles updated")
 
 ###########################################################
 # Commands
@@ -100,12 +118,11 @@ async def commands(ctx, *args):
                        "roles       [WIP]        -> prints out all the roles and points needed to reach them\n"
                        "leaderboard [WIP]        -> prints out top (TBD) users and their points\n"
                        "pay [user]  [WIP]        -> pay a user with your points.  Implementation TBD```")
-                       # "[user] -> displays user's current social credit, and how much they've gained today")
 
 
 @bot.command(name="add")
 @has_permissions(administrator=True)
-async def add_social_credit(ctx, amount:int, mention:str):
+async def add_points(ctx, amount: int, mention:str):
     if not STARTED:
         return
 
@@ -122,11 +139,13 @@ async def add_social_credit(ctx, amount:int, mention:str):
     else:
         check_for_data(user)
         memberPoints[user.id] = memberPoints[user.id] + amount
-        await ctx.send(f"{user.mention} has been awarded {amount} points.  Congratulations!")
+        await ctx.send(f"{user.mention} has been awarded {amount} points.  Congratulations!\n"
+                       f"They now have {memberPoints[user.id]} points.")
+        await update_roles(ctx, user)
 
 @bot.command(name="remove")
 @has_permissions(administrator=True)
-async def add_social_credit(ctx, amount, mention:str):
+async def remove_points(ctx, amount: int, mention:str):
     if not STARTED:
         return
 
@@ -142,8 +161,9 @@ async def add_social_credit(ctx, amount, mention:str):
         await ctx.send("Invalid user or self mention")
     else:
         check_for_data(user)
-        memberPoints[userid] -= amount
-        await ctx.send(f"{user.mention} has had {amount} points revoked.")
+        memberPoints[user.id] = memberPoints[user.id] - amount
+        await ctx.send(f"{user.mention} has had {amount} points revoked. They now have {memberPoints[user.id]} points.")
+        await update_roles(ctx, user)
 
 
 @bot.command()
@@ -220,7 +240,7 @@ async def save(ctx):
 
 # non-admin commands
 @bot.command(name="check")
-async def check_social_credit(ctx, *args):
+async def check_points(ctx, *args):
     if not STARTED:
         return
     user = ctx.author
@@ -255,8 +275,6 @@ async def start(ctx):
 # Run the bot
 @bot.event
 async def on_ready():
-    # print("Loading Social Credit csv")
-    # loadSocialCredit(SCFile)
     print("Ready!")
 
 bot.run(token)
