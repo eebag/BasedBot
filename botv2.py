@@ -29,7 +29,11 @@ with open(tokenfile) as t:
 
 # Social credit dict {userid -> social credit}
 socialCredit = {}
-roles = ["1013907404460662786"]
+# roles dict {points -> role}
+roles = {}
+#top role and number of people who can attain it
+toprole = None
+topmembers = 0
 
 ###########################################################
 # Helper/Misc Functions
@@ -62,11 +66,17 @@ async def commands(ctx, *args):
 
 
 @bot.command(name="add")
-async def add_social_credit(ctx, amount, user: discord.user = None):
+async def add_social_credit(ctx, amount, mention:str):
     if not STARTED:
         return
 
+    #get user from mention
+    userid = mention.replace("@","")
+    userid = userid[1:][:len(userid) - 2]
+    user = await bot.fetch_user(int(userid))
+
     if not user:
+        print("No user")
         await ctx.send("Invalid user or self mention")
     else:
         await ctx.send(user.mention)
@@ -105,15 +115,25 @@ async def set_max_role(ctx, *, role : discord.role):
 
 @bot.command(name="addrole")
 @has_permissions(administrator = True)
-async def add_role(ctx, name:str):
+async def add_role(ctx, name : str, amount : int = None):
     if not STARTED:
         return
 
-    role = get(GUILD.roles, name=name)
+    rolename = name.replace("_", " ")
+    role = get(GUILD.roles, name=rolename)
+
     if role is None:
+        print("NO ROLE")
+        print(name)
+        print(GUILD.roles)
         await ctx.send("role does not exist")
     else:
-        await ctx.send(f"{role} added")
+        if amount:
+            print(f"{role} adding for {amount}")
+            await ctx.send(f"{role} added, achieved at {amount} points")
+        else:
+            print(f"{role} adding")
+            await ctx.send(f"{role} added")
 
 # non-admin commands
 @bot.command(name="check")
@@ -133,10 +153,11 @@ async def init(ctx, *args):
 
 # setup: use after bot restart
 @bot.command()
-async def start(ctx, *args):
+async def start(ctx):
+    global GUILD, STARTED
     GUILD = ctx.guild
     STARTED = True
-
+    print("Bot started")
 
 # Run the bot
 @bot.event
