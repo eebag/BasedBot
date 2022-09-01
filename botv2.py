@@ -99,7 +99,7 @@ async def update_roles(ctx, user: discord.user,silent=False):
         else:
             print("a")
             for member in roleholders:
-                member.remove_roles(toprole)
+                await member.remove_roles(toprole)
             print("b")
             for i in range(topmembers):
                 tuserid = sorted_members[i][0]
