@@ -17,6 +17,7 @@ STARTED = False
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix=';', intents=intents)
+bot.remove_command('help')
 
 # current directory
 CWD = os.getcwd()
@@ -112,22 +113,21 @@ async def update_roles(ctx, user: discord.member,silent=False):
 
 # Admin help command
 @bot.command()
+@has_permissions(administrator=True)
 async def commands(ctx, *args):
     if not STARTED:
         return
 
     if len(args) == 0:
         await ctx.send("Server point **ADMIN** commands: \n"
-                       "```add      [user] [amount] -> adds [amount] point(s) to [user]'s account\n"
-                       "remove   [user] [amount] -> subtracts [amount] from [user]'s points\n"
-                       "bankroll         [WIP]   -> prints out EVERYONE'S points\n"
-                       "update   [user]  [WIP]   -> updates user rank based on their points\n"
-                       "updateall        [WIP]   -> updates EVERYONE'S rank based on their points (silent)```\n"
-                       "Server point **USER** commands:\n"
-                       "```check                    -> prints out your current point balance\n"
-                       "roles                    -> prints out all the roles and points needed to reach them\n"
-                       "leaderboard [WIP]        -> prints out top (TBD) users and their points\n"
-                       "pay [user]  [WIP]        -> pay a user with your points.  Implementation TBD```")
+                       "```add      [user] [amount] -> adds [amount] point(s) to [user]'s account\n\n"
+                       "remove   [user] [amount] -> subtracts [amount] from [user]'s points\n\n"
+                       "setmaxrole [role] [num] [req] -> sets [role] as top role that only [num] people can hold, "
+                       "with [req] as the minimum point requirement for attainment\n\n"
+                       "setdefaultrole [role]    -> sets [role] as rank for 0 points"
+                       "bankroll         [WIP]   -> prints out EVERYONE'S points\n\n"
+                       "update   [user]  [WIP]   -> updates user rank based on their points\n\n"
+                       "updateall        [WIP]   -> updates EVERYONE'S rank based on their points (silent)```\n")
 
 
 @bot.command(name="add")
@@ -307,6 +307,17 @@ async def load(ctx):
     await ctx.send("Done loading")
 
 # non-admin commands
+@bot.command(name="help")
+async def help_command(ctx):
+    if not STARTED:
+        return
+
+    await ctx.send("Server point commands:\n"
+                       "```check                    -> prints out your current point balance\n"
+                       "roles                    -> prints out all the roles and points needed to reach them\n"
+                       "leaderboard [WIP]        -> prints out top (TBD) users and their points\n"
+                       "pay [user]  [WIP]        -> pay a user with your points.  Implementation TBD```")
+
 @bot.command(name="check")
 async def check_points(ctx):
     if not STARTED:
