@@ -55,7 +55,7 @@ def check_for_data(user):
         return False
 
 #updates roles and top members
-async def update_roles(ctx, user: discord.member,silent=False):
+async def update_roles(ctx, user: discord.user,silent=False):
     global roles, memberPoints, toprole, topmembers, toprequirement, roleholders
 
     member = await discord.ext.commands.converter.MemberConverter().convert(ctx, str(user.id))
@@ -89,21 +89,24 @@ async def update_roles(ctx, user: discord.member,silent=False):
             await member.remove_roles(r)
 
     # check for top role
-    # if toprequirement > 0 and userpoints > toprequirement:
-    #
+    # if toprequirement > 0 and userpoints > toprequirement and toprole != None:
+    #     print("Attempting to apply top role to user")
     #     # sort all members by points
     #     sorted_members = sorted(memberPoints.items(), key=lambda x: x[1], reverse=True)
     #
     #     if topmembers > len(sorted_members):
     #         ctx.send("Error in updating top rank: More members allocated than have points")
     #     else:
-    #         for user in roleholders:
-    #             user.remove_roles(toprole)
+    #         print("a")
+    #         for member in roleholders:
+    #             member.remove_roles(toprole)
     #
     #         for i in range(0, topmembers - 1):
     #             userid = sorted_members[i][0]
     #             user = bot.fetch_user(int(userid))
-    #             user.add_roles(toprole)
+    #             member.add_roles(toprole)
+    #             roleholders.append(member)
+    #             print(f"{member} has attained {toprole}")
 
     if (userroles != member.roles) and (not silent):
         await ctx.send(f"{user.mention} has had their roles updated")
