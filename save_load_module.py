@@ -40,7 +40,7 @@ def load_user_data(filename:str):
 
 ###################
 # server rank settings save/load
-def save_rank_settings(filename: str, ranks: dict, toproledata = None):
+def save_rank_settings(filename: str, ranks: dict, toproledata = None, bottomroledata = None):
     fields = ['Points', 'Rank']
     with open(filename, 'w') as f:
         writer = csv.DictWriter(f, fieldnames=fields)
@@ -64,6 +64,16 @@ def save_rank_settings(filename: str, ranks: dict, toproledata = None):
                 writer.writerow(newDict)
             else:
                 print("INVALID TOP ROLE DATA")
+
+        if bottomroledata != None:
+            if len(bottomroledata) == 2:
+                rolename = bottomroledata[0]
+                rolerequirement = bottomroledata[1]
+                roleconcat = f"{rolename}&"
+                newDict = {"Points": rolerequirement, "Rank": roleconcat}
+                writer.writerow(newDict)
+            else:
+                print("INVALID BOTTOM ROLE DATA")
 
 def load_rank_settings(filename: str):
     ranks = {}

@@ -89,7 +89,7 @@ async def update_roles(ctx, user: discord.user,silent=False):
         print(f"adding {newrole} to {user.name}")
         await member.add_roles(newrole)
         if bottomrole in member.roles:
-            await member.remove_role(bottomrole)
+            await member.remove_roles(bottomrole)
 
     # remove all the roles that aren't newrole
     for r in roles.values():
@@ -120,7 +120,7 @@ async def update_roles(ctx, user: discord.user,silent=False):
                 print(f"{tmember} has attained {toprole}")
 
     # check for bottom role
-    if userpoints <= bottomrequirement:
+    if userpoints <= bottomrequirement and bottomrole != None:
         await member.add_roles(bottomrole)
 
     if (userroles != member.roles) and (not silent):
@@ -266,7 +266,7 @@ async def set_botm_role(ctx, name :str, requirement : int = -250):
         bottomrequirement = requirement
 
         await ctx.send(f"{role} now set as bottom role, with {requirement} points needed to attain it")
-        
+
 @bot.command(name ="setdefaultrole")
 @has_permissions(administrator=True)
 async def set_neutral_role(ctx, name: str):
@@ -318,11 +318,15 @@ async def save(ctx):
     save_load_module.save_user_data(filename, memberPoints)
 
     filename = str(ctx.guild.id) + "-ranksettings.csv"
-    if (toprole == None) or (toprequirement == 0) or (topmembers == 0):
-        print("No top role being saved!")
-        save_load_module.save_rank_settings(filename, roles)
-    else:
-        save_load_module.save_rank_settings(filename, roles, [toprole, topmembers, toprequirement])
+
+    td = None
+    bd = None
+    if (toprole != None) and (topmembers > 0):
+        td = [toprole, topmembers, toprequirement]
+
+    if (bottomrole != None):
+        bd = [bottomrole, bottomrequirement]
+    save_load_module.save_rank_settings(filename, roles, td, bd)
 
 @bot.command(name="load")
 @has_permissions(administrator=True)
@@ -351,6 +355,12 @@ async def load(ctx):
                 toprole = get(GUILD.roles, name = temp[0])
                 topmembers = int(temp[1])
                 print(f"{toprole} extracted as top role with {topmembers} members and minimum requirement of {toprequirement}")
+            elif rdict[key].__contains__("&"):
+                global bottomrole, bottomrequirement
+                bottomrequirement = key
+                temp = rdict[key].replace("&", "")
+                bottomrole = get(GUILD.roles, name = temp)
+                print(f"{bottomrole} extracted as bottom role with {bottomrequirement} as point requirement")
             else:
                 roles[key] = get(GUILD.roles, name=rdict[key])
 
