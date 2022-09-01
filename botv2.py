@@ -1,6 +1,5 @@
 # libraries that do kind things for me like make me not have to do code
 import json
-from datetime import date
 import discord
 from discord import Member
 from discord.ext import commands
