@@ -261,14 +261,19 @@ async def save(ctx):
     if not STARTED:
         return
 
-    global memberPoints, roles
+    global memberPoints, roles, toprole, toprequirement, topmembers
 
     #TODO: save points
     filename = str(ctx.guild.id) + "-userdata.csv"
     save_load_module.save_user_data(filename, memberPoints)
     #TODO: save settings
     filename = str(ctx.guild.id) + "-ranksettings.csv"
-    save_load_module.save_rank_settings(filename, roles)
+
+    if (toprole == None) or (toprequirement == 0) or (topmembers == 0):
+        print("No top role being saved!")
+        save_load_module.save_rank_settings(filename, roles)
+    else:
+        save_load_module.save_rank_settings(filename, roles, [toprole, topmembers, toprequirement])
 
 @bot.command(name="load")
 @has_permissions(administrator=True)
@@ -289,7 +294,15 @@ async def load(ctx):
         await ctx.send("There was no file or there was an error loading the file for rank data")
     else: # convert into roles usable by discord.py
         for key in rdict.keys():
-            roles[key] = get(GUILD.roles, name=rdict[key])
+            if rdict[key].contains("%"):
+                global toprole, toprequirement, topmembers
+                toprequirement = key
+                temp = rdict[key].split("%")
+                toprole = get(GUILD.roles, name = temp[0])
+                topmembers = int(temp[1])
+                print(f"{toprole} extracted as top role with {topmembers} members and minimum requirement of {toprequirement}")
+            else:
+                roles[key] = get(GUILD.roles, name=rdict[key])
 
     await ctx.send("Done loading")
 
