@@ -89,24 +89,24 @@ async def update_roles(ctx, user: discord.user,silent=False):
             await member.remove_roles(r)
 
     # check for top role
-    # if toprequirement > 0 and userpoints > toprequirement and toprole != None:
-    #     print("Attempting to apply top role to user")
-    #     # sort all members by points
-    #     sorted_members = sorted(memberPoints.items(), key=lambda x: x[1], reverse=True)
-    #
-    #     if topmembers > len(sorted_members):
-    #         ctx.send("Error in updating top rank: More members allocated than have points")
-    #     else:
-    #         print("a")
-    #         for member in roleholders:
-    #             member.remove_roles(toprole)
-    #
-    #         for i in range(0, topmembers - 1):
-    #             userid = sorted_members[i][0]
-    #             user = bot.fetch_user(int(userid))
-    #             member.add_roles(toprole)
-    #             roleholders.append(member)
-    #             print(f"{member} has attained {toprole}")
+    if toprequirement > 0 and userpoints >= toprequirement and toprole != None:
+        print("Attempting to apply top role to user")
+        # sort all members by points
+        sorted_members = sorted(memberPoints.items(), key=lambda x: x[1], reverse=True)
+
+        if topmembers > len(sorted_members):
+            ctx.send("Error in updating top rank: More members allocated than have points")
+        else:
+            print("a")
+            for member in roleholders:
+                member.remove_roles(toprole)
+            print("b")
+            for i in range(topmembers):
+                tuserid = sorted_members[i][0]
+                tmember = await discord.ext.commands.converter.MemberConverter().convert(ctx, str(tuserid))
+                await tmember.add_roles(toprole)
+                roleholders.append(member)
+                print(f"{tmember} has attained {toprole}")
 
     if (userroles != member.roles) and (not silent):
         await ctx.send(f"{user.mention} has had their roles updated")
