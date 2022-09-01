@@ -14,7 +14,7 @@ GUILD = None # constant for holding the guild
 STARTED = False
 
 # constants for discord bot stuff
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.members = True
 bot = commands.Bot(command_prefix=';', intents=intents)
 bot.remove_command('help')
