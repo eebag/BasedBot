@@ -122,10 +122,10 @@ async def commands(ctx, *args):
                        "remove   [user] [amount] -> subtracts [amount] from [user]'s points\n"
                        "bankroll         [WIP]   -> prints out EVERYONE'S points\n"
                        "update   [user]  [WIP]   -> updates user rank based on their points\n"
-                       "updateall        [WIP]   -> updates EVERYONE'S rank based on their points```\n"
+                       "updateall        [WIP]   -> updates EVERYONE'S rank based on their points (silent)```\n"
                        "Server point **USER** commands:\n"
                        "```check                    -> prints out your current point balance\n"
-                       "roles       [WIP]        -> prints out all the roles and points needed to reach them\n"
+                       "roles                    -> prints out all the roles and points needed to reach them\n"
                        "leaderboard [WIP]        -> prints out top (TBD) users and their points\n"
                        "pay [user]  [WIP]        -> pay a user with your points.  Implementation TBD```")
 
@@ -291,9 +291,11 @@ async def load(ctx):
         for key in rdict.keys():
             roles[key] = get(GUILD.roles, name=rdict[key])
 
+    await ctx.send("Done loading")
+
 # non-admin commands
 @bot.command(name="check")
-async def check_points(ctx, *args):
+async def check_points(ctx):
     if not STARTED:
         return
     user = ctx.author
@@ -301,6 +303,18 @@ async def check_points(ctx, *args):
     print(memberPoints)
     amount = memberPoints[user.id]
     await ctx.send(f"{user.mention} you have {amount} points")
+
+@bot.command(name="roles")
+async def display_roles(ctx):
+    global roles
+    displaystring = "Roles determined by server points:\n```"
+
+    for key in roles.keys():
+        displaystring = displaystring + "[" + str(key) + "] points -> " + str(roles[key]) + "\n"
+
+    displaystring = displaystring + "```"
+
+    await ctx.send(displaystring)
 
 # Setup/initialization commands
 
