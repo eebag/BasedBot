@@ -168,6 +168,8 @@ async def add_points(ctx, amount: int, mention:str):
     if not user:
         print("No user")
         await ctx.send("Invalid user or self mention")
+    elif user.bot:
+        await ctx.send("Bots cant get points, bozo")
     else:
         check_for_data(user)
         memberPoints[user.id] = memberPoints[user.id] + amount
@@ -191,6 +193,8 @@ async def remove_points(ctx, amount: int, mention:str):
     if not user:
         print("No user")
         await ctx.send("Invalid user or self mention")
+    elif user.bot:
+        await ctx.send("Bots cant get points, bozo")
     else:
         check_for_data(user)
         memberPoints[user.id] = memberPoints[user.id] - amount
