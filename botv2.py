@@ -415,7 +415,7 @@ async def display_roles(ctx):
         tempstring2 = ""
     else:
         tempstring2 = f"The lowest role you can achive is {bottomrole}, which is given to anyone with {bottomrequirement}" \
-                      f"points or below."
+                      f" points or below."
     displaystring = displaystring + tempstring + tempstring2 + "```"
 
     await ctx.send(displaystring)
