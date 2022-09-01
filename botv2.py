@@ -90,7 +90,7 @@ async def update_roles(ctx, user: discord.user,silent=False):
 
     if userpoints < toprequirement and toprole in member.roles:
         await member.remove_roles(toprole)
-        
+
     # check for top role
     if toprequirement > 0 and userpoints >= toprequirement and toprole != None:
         print("Attempting to apply top role to user")
@@ -211,6 +211,12 @@ async def set_max_role(ctx, name : str, amount : int = 1, requirement : int = 50
         return
 
     global toprole, topmembers, toprequirement
+
+    # role is being changed, remove it from existing top members
+    if toprole != None:
+        global roleholders
+        for member in roleholders:
+            await member.remove_roles(toprole)
 
     rolename = name.replace("_", " ")
     role = get(GUILD.roles, name=rolename)
