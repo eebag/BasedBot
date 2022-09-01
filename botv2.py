@@ -200,11 +200,11 @@ async def role_error(self, ctx, error):
 
 @bot.command(name="setmaxrole")
 @has_permissions(administrator = True)
-async def set_max_role(ctx, name : str, amount : int = 1):
+async def set_max_role(ctx, name : str, amount : int = 1, requirement : int = 500):
     if not STARTED:
         return
 
-    global toprole, topmembers
+    global toprole, topmembers, toprequirement
 
     rolename = name.replace("_", " ")
     role = get(GUILD.roles, name=rolename)
@@ -214,6 +214,7 @@ async def set_max_role(ctx, name : str, amount : int = 1):
     else:
         toprole = role
         topmembers = amount
+        toprequirement = requirement
         await ctx.send(f"{role} now set as max role, with {amount} people allowed to hold it")
 
 @bot.command(name ="setdefaultrole")
@@ -263,12 +264,10 @@ async def save(ctx):
 
     global memberPoints, roles, toprole, toprequirement, topmembers
 
-    #TODO: save points
     filename = str(ctx.guild.id) + "-userdata.csv"
     save_load_module.save_user_data(filename, memberPoints)
-    #TODO: save settings
-    filename = str(ctx.guild.id) + "-ranksettings.csv"
 
+    filename = str(ctx.guild.id) + "-ranksettings.csv"
     if (toprole == None) or (toprequirement == 0) or (topmembers == 0):
         print("No top role being saved!")
         save_load_module.save_rank_settings(filename, roles)
@@ -294,10 +293,11 @@ async def load(ctx):
         await ctx.send("There was no file or there was an error loading the file for rank data")
     else: # convert into roles usable by discord.py
         for key in rdict.keys():
-            if rdict[key].contains("%"):
+            if rdict[key].__contains__("%"):
                 global toprole, toprequirement, topmembers
                 toprequirement = key
                 temp = rdict[key].split("%")
+                temp[0] = temp[0].rstrip() # remove whitespace at end
                 toprole = get(GUILD.roles, name = temp[0])
                 topmembers = int(temp[1])
                 print(f"{toprole} extracted as top role with {topmembers} members and minimum requirement of {toprequirement}")
@@ -325,7 +325,18 @@ async def display_roles(ctx):
     for key in roles.keys():
         displaystring = displaystring + "[" + str(key) + "] points -> " + str(roles[key]) + "\n"
 
-    displaystring = displaystring + "```"
+    global toprole, topmembers, toprequirement
+
+    # I know this is bad code. I just am too lazy to get to fixing it because i want to see this thing done right now
+    tempstring = ""
+
+    if (toprole == None) or (toprequirement == 0) or (topmembers == 0):
+        tempstring = "```"
+    else:
+        tempstring = f"The highest role you can achieve is {toprole}, which only {topmembers} people can hold " \
+                     f"and a minimum requirement of {toprequirement} points```"
+
+    displaystring = displaystring + tempstring
 
     await ctx.send(displaystring)
 

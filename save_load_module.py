@@ -49,15 +49,19 @@ def save_rank_settings(filename: str, ranks: dict, toproledata = None):
             newDict = {'Points': key, 'Rank': ranks[key]}
             writer.writerow(newDict)
 
-        if toproledata:
+        if toproledata != None:
             if len(toproledata) == 3:
                 rolename = toproledata[0]
                 rolemembers = toproledata[1]
                 rolerequirement = toproledata[2]
 
-                roleconcat = rolename + "%" + str(rolemembers)
+                roleconcat = f"{rolename} %" + str(rolemembers)
 
-                newDict = {"Points:": rolerequirement, "Rank": roleconcat}
+                if isinstance(roleconcat, str):
+                    print("WE GOOD")
+
+                newDict = {"Points": rolerequirement, "Rank": roleconcat}
+                writer.writerow(newDict)
             else:
                 print("INVALID TOP ROLE DATA")
 
