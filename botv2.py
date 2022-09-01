@@ -6,7 +6,7 @@ from discord.ext import commands
 from discord.ext.commands import has_permissions
 from discord.utils import get
 import math
-import csv
+import save_load_module
 import os
 
 # important stuff unrleated to discord api
@@ -40,18 +40,6 @@ roleholders = []
 ###########################################################
 # Helper/Misc Functions
 
-# Finds to see if a user is in the server
-async def find_user(target, ctx):
-    guild = ctx.guild
-    for member in guild.members:
-        # print(member.name)
-        if member.name == target:
-            # print("Member found: " + member.name)
-            # print(member.id)
-            return member
-
-    return False
-
 # Checks for data, returns true if found
 # otherwise makes data and returns false
 def check_for_data(user):
@@ -66,7 +54,7 @@ def check_for_data(user):
         return False
 
 #updates roles and top members
-async def update_roles(ctx, user: discord.member):
+async def update_roles(ctx, user: discord.member,silent=False):
     global roles, memberPoints, toprole, topmembers, toprequirement, roleholders
 
     member = await discord.ext.commands.converter.MemberConverter().convert(ctx, str(user.id))
@@ -116,7 +104,7 @@ async def update_roles(ctx, user: discord.member):
     #             user = bot.fetch_user(int(userid))
     #             user.add_roles(toprole)
 
-    if userroles != member.roles:
+    if (userroles != member.roles) and (not silent):
         await ctx.send(f"{user.mention} has had their roles updated")
 
 ###########################################################
@@ -132,7 +120,9 @@ async def commands(ctx, *args):
         await ctx.send("Server point **ADMIN** commands: \n"
                        "```add      [user] [amount] -> adds [amount] point(s) to [user]'s account\n"
                        "remove   [user] [amount] -> subtracts [amount] from [user]'s points\n"
-                       "bankroll    [WIP]        -> prints out EVERYONE'S points```\n"
+                       "bankroll         [WIP]   -> prints out EVERYONE'S points\n"
+                       "update   [user]  [WIP]   -> updates user rank based on their points\n"
+                       "updateall        [WIP]   -> updates EVERYONE'S rank based on their points```\n"
                        "Server point **USER** commands:\n"
                        "```check                    -> prints out your current point balance\n"
                        "roles       [WIP]        -> prints out all the roles and points needed to reach them\n"
@@ -241,6 +231,7 @@ async def set_neutral_role(ctx, name: str):
         await ctx.send("role does not exist")
     else:
         roles[0] = role
+        print(f"{role} set for 0")
         await ctx.send(f"{role} now set 0 point role")
 
 @bot.command(name="addrole")
@@ -270,9 +261,35 @@ async def save(ctx):
     if not STARTED:
         return
 
-    #TODO: save points
+    global memberPoints, roles
 
+    #TODO: save points
+    filename = str(ctx.guild.id) + "-userdata.csv"
+    save_load_module.save_user_data(filename, memberPoints)
     #TODO: save settings
+    filename = str(ctx.guild.id) + "-ranksettings.csv"
+    save_load_module.save_rank_settings(filename, roles)
+
+@bot.command(name="load")
+@has_permissions(administrator=True)
+async def load(ctx):
+    if not STARTED:
+        return
+
+    global memberPoints, roles
+
+    filename = str(ctx.guild.id) + "-userdata.csv"
+    memberPoints = save_load_module.load_user_data(filename)
+    if memberPoints == -1:
+        await ctx.send("There was no file or there was an error loading the file for user data")
+
+    filename = str(ctx.guild.id) + "-ranksettings.csv"
+    rdict = save_load_module.load_rank_settings(filename)
+    if rdict == -1:
+        await ctx.send("There was no file or there was an error loading the file for rank data")
+    else: # convert into roles usable by discord.py
+        for key in rdict.keys():
+            roles[key] = get(GUILD.roles, name=rdict[key])
 
 # non-admin commands
 @bot.command(name="check")
@@ -289,6 +306,7 @@ async def check_points(ctx, *args):
 
 # init: use when setting up bot for server.  Also usable as reset.
 @bot.command()
+@has_permissions(administrator=True)
 async def init(ctx, *args):
     guild = ctx.guild
     i = 0
@@ -302,6 +320,7 @@ async def init(ctx, *args):
 
 # setup: use after bot restart
 @bot.command()
+@has_permissions(administrator=True)
 async def start(ctx):
     global GUILD, STARTED
     GUILD = ctx.guild

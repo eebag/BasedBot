@@ -24,6 +24,10 @@ def load_user_data(filename:str):
 
             data[int(userid)] = int(points)
 
+    if len(data.keys()) < 1:
+        print("NO KEYS IN LOADED DATA")
+        return -1
+
     return data
 
 
@@ -45,14 +49,18 @@ def save_rank_settings(filename: str, ranks: dict):
             newDict = {'Points': key, 'Rank': ranks[key]}
             writer.writerow(newDict)
 
-def load_rank_settings(filename: str, settings: dict):
+def load_rank_settings(filename: str):
     ranks = {}
 
     with open(filename, 'r') as f:
         for line in csv.DictReader(f):
-            points = line['UserID']
-            rank = line['rank']
+            points = line['Points']
+            rank = line['Rank']
 
             ranks[int(points)] = rank
+
+    if len(ranks.keys()) < 1:
+        print("NO KEYS IN LOADED RANKS")
+        return -1
 
     return ranks
