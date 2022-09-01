@@ -32,12 +32,18 @@ with open(tokenfile) as t:
 memberPoints = {}
 # roles dict {points -> role}
 roles = {}
-#top role and number of people who can attain it
+
+# top role and number of people who can attain it
 toprole = None
 topmembers = 0
 toprequirement = 0
 
 roleholders = []
+
+# bottom role requiurements
+bottomrole = None
+bottomrequirement = 0
+
 ###########################################################
 # Helper/Misc Functions
 
@@ -82,6 +88,8 @@ async def update_roles(ctx, user: discord.user,silent=False):
     if (not newrole in member.roles) and (newrole != None):
         print(f"adding {newrole} to {user.name}")
         await member.add_roles(newrole)
+        if bottomrole in member.roles:
+            await member.remove_role(bottomrole)
 
     # remove all the roles that aren't newrole
     for r in roles.values():
@@ -110,6 +118,10 @@ async def update_roles(ctx, user: discord.user,silent=False):
                 await tmember.add_roles(toprole)
                 roleholders.append(member)
                 print(f"{tmember} has attained {toprole}")
+
+    # check for bottom role
+    if userpoints <= bottomrequirement:
+        await member.add_roles(bottomrole)
 
     if (userroles != member.roles) and (not silent):
         await ctx.send(f"{user.mention} has had their roles updated")
@@ -212,23 +224,49 @@ async def set_max_role(ctx, name : str, amount : int = 1, requirement : int = 50
 
     global toprole, topmembers, toprequirement
 
-    # role is being changed, remove it from existing top members
-    if toprole != None:
-        global roleholders
-        for member in roleholders:
-            await member.remove_roles(toprole)
-
     rolename = name.replace("_", " ")
     role = get(GUILD.roles, name=rolename)
     if role is None:
         print("NO ROLE")
         await ctx.send("role does not exist")
     else:
+        # role is being changed, remove it from existing top members
+        if toprole != None:
+            print(f"{toprole} BEING REPLACED WITH {role} AS TOP ROLE")
+            global roleholders
+            for member in roleholders:
+                await member.remove_roles(toprole)
+
         toprole = role
         topmembers = amount
         toprequirement = requirement
         await ctx.send(f"{role} now set as max role, with {amount} people allowed to hold it")
 
+@bot.command(name="setbottomrole")
+@has_permissions(administrator = True)
+async def set_botm_role(ctx, name :str, requirement : int = -250):
+    if not STARTED:
+        return
+
+    global bottomrole, bottomrequirement
+    rolename = name.replace("_", " ")
+    role = get(GUILD.roles, name=rolename)
+
+    if role is None:
+        print("NO ROLE")
+        await ctx.send("role does not exist")
+    else:
+        if bottomrole != None:
+            print(f"{bottomrole} BEING REPLACED WITH {role} AS BOTTOM ROLE")
+            for member in ctx.guild.members:
+                if role in member.roles:
+                    await member.remove_roles(bottomrole)
+
+        bottomrole = role
+        bottomrequirement = requirement
+
+        await ctx.send(f"{role} now set as bottom role, with {requirement} points needed to attain it")
+        
 @bot.command(name ="setdefaultrole")
 @has_permissions(administrator=True)
 async def set_neutral_role(ctx, name: str):
@@ -316,6 +354,8 @@ async def load(ctx):
             else:
                 roles[key] = get(GUILD.roles, name=rdict[key])
 
+    for member in ctx.guild.members:
+        await update_roles(ctx, member, True)
     await ctx.send("Done loading")
 
 # non-admin commands
