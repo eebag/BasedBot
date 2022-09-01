@@ -66,6 +66,9 @@ async def update_roles(ctx, user: discord.user,silent=False):
 
     member = await discord.ext.commands.converter.MemberConverter().convert(ctx, str(user.id))
 
+    if member == bot or member.bot:
+        return
+
     userroles = member.roles
     userpoints = memberPoints[user.id]
 
@@ -101,17 +104,17 @@ async def update_roles(ctx, user: discord.user,silent=False):
 
     # check for top role
     if toprequirement > 0 and userpoints >= toprequirement and toprole != None:
-        print("Attempting to apply top role to user")
+        # print("Attempting to apply top role to user")
         # sort all members by points
         sorted_members = sorted(memberPoints.items(), key=lambda x: x[1], reverse=True)
 
         if topmembers > len(sorted_members):
             ctx.send("Error in updating top rank: More members allocated than have points")
         else:
-            print("a")
+            # print("a")
             for mem in roleholders:
                 await mem.remove_roles(toprole)
-            print("b")
+            # print("b")
             for i in range(topmembers):
                 tuserid = sorted_members[i][0]
                 tmember = await discord.ext.commands.converter.MemberConverter().convert(ctx, str(tuserid))
@@ -144,8 +147,8 @@ async def commands(ctx, *args):
                        "with [req] as the minimum point requirement for attainment\n\n"
                        "setdefaultrole [role]    -> sets [role] as rank for 0 points\n\n"
                        "setbottomrole [role] [points] -> sets [role] as minimum role, below [amt] points\n\n"
-                       "bankroll         [WIP]   -> prints out EVERYONE'S points\n\n"
-                       "update   [user]  [WIP]   -> updates user rank based on their points\n\n"
+                       "bankroll                 -> prints out EVERYONE'S points\n\n"
+                       "update   [user]          -> updates user rank based on their points\n\n"
                        "updateall        [WIP]   -> updates EVERYONE'S rank based on their points (silent)```\n")
 
 
@@ -369,6 +372,31 @@ async def load(ctx):
         await update_roles(ctx, member, True)
     await ctx.send("Done loading")
 
+@bot.command(name="bankroll")
+@has_permissions(administrator=True)
+async def display_all_points(ctx):
+    if not STARTED:
+        return
+
+    displaystr = "ALL members points: ```"
+    for id in memberPoints:
+        user = await bot.fetch_user(id)
+        displaystr = displaystr + f"{user} has {memberPoints[id]} points\n"
+    displaystr = displaystr + "```"
+    await ctx.send(displaystr)
+
+@bot.command(name="update")
+@has_permissions(administrator=True)
+async def update_user_rank_cmd(ctx, mention: str):
+
+    userid = mention.replace("@","")
+    userid = userid[1:][:len(userid) - 2]
+    user = await bot.fetch_user(int(userid))
+    if not user:
+        await ctx.send("Invalid user")
+        return
+    await update_roles(ctx, user)
+
 # non-admin commands
 @bot.command(name="help")
 async def help_command(ctx):
@@ -379,7 +407,29 @@ async def help_command(ctx):
                        "```check                    -> prints out your current point balance\n"
                        "roles                    -> prints out all the roles and points needed to reach them\n"
                        "leaderboard [WIP]        -> prints out top (TBD) users and their points\n"
-                       "pay [user]  [WIP]        -> pay a user with your points.  Implementation TBD```")
+                       "pay [user] [amount]      -> pay a user with your points.  Implementation TBD```")
+
+@bot.command(name="pay")
+async def pay_user(ctx, mention:str, amount:int):
+    userid = mention.replace("@","")
+    userid = userid[1:][:len(userid) - 2]
+    user = await bot.fetch_user(int(userid))
+
+    if not user:
+        await ctx.send("Invalid user")
+        return
+
+    balance = memberPoints[ctx.author.id]
+    print(f"{ctx.author} has {balance} points and is trying to send {user} {amount} points")
+    if (amount < 0) or (balance < amount):
+        await ctx.send("Nice try, pal")
+        return
+    else:
+        memberPoints[ctx.author.id] = balance - amount
+        memberPoints[user.id] = memberPoints[user.id] + amount
+
+    await update_roles(ctx, user)
+    await update_roles(ctx, ctx.author)
 
 @bot.command(name="check")
 async def check_points(ctx):
@@ -405,7 +455,7 @@ async def display_roles(ctx):
     tempstring = ""
 
     if (toprole == None) or (toprequirement == 0) or (topmembers == 0):
-        tempstring = "```"
+        tempstring = ""
     else:
         tempstring = f"The highest role you can achieve is {toprole}, which only {topmembers} people can hold " \
                      f"and a minimum requirement of {toprequirement} points.\n"
