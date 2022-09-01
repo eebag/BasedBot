@@ -399,7 +399,7 @@ async def display_roles(ctx):
     for key in roles.keys():
         displaystring = displaystring + "[" + str(key) + "] points -> " + str(roles[key]) + "\n"
 
-    global toprole, topmembers, toprequirement
+    global toprole, topmembers, toprequirement, bottomrole, bottomrequirement
 
     # I know this is bad code. I just am too lazy to get to fixing it because i want to see this thing done right now
     tempstring = ""
@@ -408,9 +408,15 @@ async def display_roles(ctx):
         tempstring = "```"
     else:
         tempstring = f"The highest role you can achieve is {toprole}, which only {topmembers} people can hold " \
-                     f"and a minimum requirement of {toprequirement} points```"
+                     f"and a minimum requirement of {toprequirement} points.\n"
 
-    displaystring = displaystring + tempstring
+    tempstring2 = ""
+    if bottomrole == None:
+        tempstring2 = ""
+    else:
+        tempstring2 = f"The lowest role you can achive is {bottomrole}, which is given to anyone with {bottomrequirement}" \
+                      f"points or below."
+    displaystring = displaystring + tempstring + tempstring2 + "```"
 
     await ctx.send(displaystring)
 
