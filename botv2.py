@@ -142,7 +142,8 @@ async def commands(ctx, *args):
                        "remove   [user] [amount] -> subtracts [amount] from [user]'s points\n\n"
                        "setmaxrole [role] [num] [req] -> sets [role] as top role that only [num] people can hold, "
                        "with [req] as the minimum point requirement for attainment\n\n"
-                       "setdefaultrole [role]    -> sets [role] as rank for 0 points"
+                       "setdefaultrole [role]    -> sets [role] as rank for 0 points\n\n"
+                       "setbottomrole [role] [points] -> sets [role] as minimum role, below [amt] points\n\n"
                        "bankroll         [WIP]   -> prints out EVERYONE'S points\n\n"
                        "update   [user]  [WIP]   -> updates user rank based on their points\n\n"
                        "updateall        [WIP]   -> updates EVERYONE'S rank based on their points (silent)```\n")
