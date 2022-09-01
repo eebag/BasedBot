@@ -88,6 +88,9 @@ async def update_roles(ctx, user: discord.user,silent=False):
         if r != newrole:
             await member.remove_roles(r)
 
+    if userpoints < toprequirement and toprole in member.roles:
+        await member.remove_roles(toprole)
+        
     # check for top role
     if toprequirement > 0 and userpoints >= toprequirement and toprole != None:
         print("Attempting to apply top role to user")
@@ -98,8 +101,8 @@ async def update_roles(ctx, user: discord.user,silent=False):
             ctx.send("Error in updating top rank: More members allocated than have points")
         else:
             print("a")
-            for member in roleholders:
-                await member.remove_roles(toprole)
+            for mem in roleholders:
+                await mem.remove_roles(toprole)
             print("b")
             for i in range(topmembers):
                 tuserid = sorted_members[i][0]
