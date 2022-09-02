@@ -450,7 +450,7 @@ async def display_roles(ctx):
     global roles
     displaystring = "Roles determined by server points:\n```"
 
-    if len(roles.keys) == 0:
+    if len(roles.keys()) == 0:
         displaystring = displaystring + "There are currently no roles attainable by regular point values\n"
     for key in roles.keys():
         displaystring = displaystring + "[" + str(key) + "] points -> " + str(roles[key]) + "\n"
@@ -461,14 +461,14 @@ async def display_roles(ctx):
     tempstring = ""
 
     if (toprole == None) or (toprequirement == 0) or (topmembers == 0):
-        tempstring = ""
+        tempstring = "There is currently no role for top ranked server members"
     else:
         tempstring = f"The highest role you can achieve is {toprole}, which only {topmembers} people can hold " \
                      f"and a minimum requirement of {toprequirement} points.\n"
 
     tempstring2 = ""
     if bottomrole == None:
-        tempstring2 = ""
+        tempstring2 = "There is currently no role for members below a certain point value"
     else:
         tempstring2 = f"The lowest role you can achive is {bottomrole}, which is given to anyone with {bottomrequirement}" \
                       f" points or below."
