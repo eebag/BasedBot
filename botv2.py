@@ -461,7 +461,7 @@ async def display_roles(ctx):
     tempstring = ""
 
     if (toprole == None) or (toprequirement == 0) or (topmembers == 0):
-        tempstring = "There is currently no role for top ranked server members"
+        tempstring = "There is currently no role for top ranked server members\n"
     else:
         tempstring = f"The highest role you can achieve is {toprole}, which only {topmembers} people can hold " \
                      f"and a minimum requirement of {toprequirement} points.\n"
@@ -490,7 +490,7 @@ async def init(ctx, *args):
         else:
             memberPoints[member.id] = 0
         i += 1
-    ctx.send("Initialized data for " + str(i) + " users")
+    await ctx.send("Initialized data for " + str(i) + " users")
 
 # setup: use after bot restart
 @bot.command()
