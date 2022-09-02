@@ -450,6 +450,8 @@ async def display_roles(ctx):
     global roles
     displaystring = "Roles determined by server points:\n```"
 
+    if len(roles.keys) == 0:
+        displaystring = displaystring + "There are currently no roles attainable by regular point values\n"
     for key in roles.keys():
         displaystring = displaystring + "[" + str(key) + "] points -> " + str(roles[key]) + "\n"
 
