@@ -372,6 +372,7 @@ async def load(ctx):
             else:
                 roles[key] = get(GUILD.roles, name=rdict[key])
 
+    print("Ranks done loading.  Starting member updates....")
     for member in ctx.guild.members:
         await update_roles(ctx, member, True)
     await ctx.send("Done loading")
